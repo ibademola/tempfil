@@ -6,3 +6,4 @@ def extract_pixel_value(file_path, x, y):
     bandd = dataset.GetRasterBand(1).ReadAsArray()
     pixel_value = bandd[x, y]
     return pixel_value
+

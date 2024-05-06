@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.optimize import curve_fit
 from datetime import datetime
+from .gdal_utils import get_atc_array, m_window
+from osgeo import gdal
 
 def get_acquisition_date(file_name):
     date_str = file_name.split('_')[3]  # Extracting the date part from the filename
@@ -142,4 +144,15 @@ def m_window(ts, atc, windowsize=10, stride=1):
                 output[i, j] = rec(padimage_1[indx_i - windowsize:indx_i + windowsize + 1, indx_j - windowsize:indx_j + windowsize + 1],
                                    padimage_2[indx_i - windowsize:indx_i + windowsize + 1, indx_j - windowsize:indx_j + windowsize + 1])
 
-    return output
+    return output 
+
+def process_data(input_file_path, folder_path, date, window_radius):
+    atc_01_06 = get_atc_array(input_file_path, folder_path, date, window_radius)
+
+    dataset = gdal.Open(input_file_path)
+    Ts_f = dataset.GetRasterBand(1).ReadAsArray()
+    Ts_f[(Ts_f < 200) | (Ts_f > 400)] = np.nan
+
+    F_01_06 = m_window(Ts_f, atc_01_06, windowsize=10)
+
+    return F_01_06
